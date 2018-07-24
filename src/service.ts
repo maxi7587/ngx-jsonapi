@@ -91,6 +91,11 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
     }
 
     public all(params?: IParamsCollection | Function, fc_success?: Function, fc_error?: Function): Observable<ICollection<R>> {
+        console.log('----------------------------------------------------');
+        console.log('all calling __exec()');
+        console.log('params', params);
+        console.log('----------------------------------------------------');
+
         return <Observable<ICollection<R>>>this.__exec({
             id: null,
             params: params,
@@ -101,6 +106,10 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
     }
 
     public _get(id: string, params: IParamsResource, fc_success, fc_error): Observable<R> {
+        console.log('----------------------------------------------------');
+        console.log('============service _get id============>', id);
+        console.log('============service _get params============>', params);
+        console.log('----------------------------------------------------');
         // http request
         let path = new PathBuilder();
         path.applyParams(this, params);
@@ -108,6 +117,9 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
 
         // CACHEMEMORY
         let resource = <R>this.getService().cachememory.getOrCreateResource(this.type, id);
+        console.log('----------------------------------------------------');
+        console.log('service _get resource --->', resource);
+        console.log('----------------------------------------------------');
         resource.is_loading = true;
 
         let subject = new BehaviorSubject<R>(resource);
@@ -188,8 +200,14 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
     }
 
     protected getGetFromServer(path, fc_success, fc_error, resource: R, subject: Subject<R>) {
+        console.log('----------------------------------------------------');
+        console.log('------------------getGetFromServer path------------------', path);
         Core.get(path.get())
             .then(success => {
+                console.log('------------------getGetFromServer calling Core.get then Converter.build------------------');
+                console.log('------------------success------------------', success);
+                console.log('------------------resource------------------', resource);
+                console.log('----------------------------------------------------');
                 Converter.build(success /*.data*/, resource);
                 resource.is_loading = false;
                 this.getService().cachememory.setResource(resource);
@@ -208,6 +226,10 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
 
     protected __exec(exec_params: IExecParams): Observable<R | ICollection<R> | void> {
         let exec_pp = super.proccess_exec_params(exec_params);
+        console.log('----------------------------------------------------');
+        console.log('exec_params in __exec--->', exec_params);
+        console.log('exec_pp in __exec--->', exec_pp);
+        console.log('----------------------------------------------------');
 
         switch (exec_pp.exec_type) {
             case 'get':
@@ -215,6 +237,10 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
             case 'delete':
                 return this._delete(exec_pp.id, exec_pp.params, exec_pp.fc_success, exec_pp.fc_error);
             case 'all':
+                console.log('----------------------------------------------------');
+                console.log('__exec calling _all');
+                console.log('----------------------------------------------------');
+
                 return this._all(exec_pp.params, exec_pp.fc_success, exec_pp.fc_error);
         }
     }
@@ -230,6 +256,9 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
     ) {
         // SERVER REQUEST
         tempororay_collection.$is_loading = true;
+        console.log('----------------------------------------------------');
+        console.log('getAllFromServer path --->', path);
+        console.log('----------------------------------------------------');
         Core.get(path.get())
             .then(success => {
                 tempororay_collection.$source = 'server';
@@ -242,6 +271,13 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
                         resource.id = resource.id + params.cachehash;
                     });
                 }
+
+                console.log('----------------------------------------------------');
+                console.log('getAllFromServer success path --->', path);
+                console.log('------------------getAllFromServer calling Converter.build------------------', tempororay_collection);
+                console.log('------------------success------------------', success);
+                console.log('------------------tempororay_collection------------------', tempororay_collection);
+                console.log('----------------------------------------------------');
 
                 Converter.build(success /*.data*/, tempororay_collection);
 
@@ -302,6 +338,11 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
     }
 
     private _all(params: IParamsCollection, fc_success, fc_error): Observable<ICollection<R>> {
+        console.log('----------------------------------------------------');
+        console.log('============ _all ============');
+        console.log('params --->', params);
+        console.log('==============================');
+        console.log('----------------------------------------------------');
         // check smartfiltertype, and set on remotefilter
         if (params.smartfilter && this.smartfiltertype !== 'localfilter') {
             Object.assign(params.remotefilter, params.smartfilter);
@@ -346,6 +387,16 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
         // MEMORY_CACHE
         let temporal_ttl = params.ttl || this.schema.ttl;
         if (temporal_ttl >= 0 && this.getService().cachememory.isCollectionExist(path.getForCache())) {
+            console.log('----------------------------------------------------');
+            console.log(
+                `_all calling next and runFc in --->
+                if (temporal_ttl >= 0 && this.getService().cachememory.isCollectionExist(path.getForCache()))`
+            );
+            console.log('path--->', path);
+            console.log('temporal_ttl--->', temporal_ttl);
+            console.log('this.getService().cachememory.isCollectionExist(path.getForCache())',
+                this.getService().cachememory.isCollectionExist(path.getForCache()));
+            console.log('----------------------------------------------------');
             // get cached data and merge with temporal collection
             tempororay_collection.$source = 'memory';
 
@@ -359,6 +410,16 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
 
             // exit if ttl is not expired
             if (this.getService().cachememory.isCollectionLive(path.getForCache(), temporal_ttl)) {
+                console.log('----------------------------------------------------');
+                console.log('path--->', path);
+                console.log('temporal_ttl--->', temporal_ttl);
+                console.log(
+                    `_all calling next and runFc in --->
+                    if (this.getService().cachememory.isCollectionLive(path.getForCache(), temporal_ttl))`
+                );
+                console.log('path', path);
+                console.log('params', params);
+                console.log('----------------------------------------------------');
                 // we create a promise because we need return collection before
                 // run success client function
                 let promise: Promise<void> = new Promise(
@@ -373,6 +434,16 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
                     }
                 );
             } else {
+                console.log('----------------------------------------------------');
+                console.log('path--->', path);
+                console.log('temporal_ttl--->', temporal_ttl);
+                console.log(
+                    `_all calling getAllFromServer --->
+                    if (this.getService().cachememory.isCollectionLive(path.getForCache(), temporal_ttl))`
+                );
+                console.log('path', path);
+                console.log('params', params);
+                console.log('----------------------------------------------------');
                 this.getAllFromServer(path, params, fc_success, fc_error, tempororay_collection, cached_collection, subject);
             }
         } else if (Core.injectedServices.rsJsonapiConfig.cachestore_support) {
@@ -392,9 +463,20 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
                     localfilter.filterCollection(tempororay_collection, cached_collection);
 
                     if (Base.isObjectLive(temporal_ttl, tempororay_collection.$cache_last_update)) {
+                        console.log('----------------------------------------------------');
+                        console.log('isObjectLive');
+                        console.log('_all calling next and runFc in ---> if (Core.injectedServices.rsJsonapiConfig.cachestore_support)');
+                        console.log('path', path);
+                        console.log('params', params);
+                        console.log('----------------------------------------------------');
                         subject.next(tempororay_collection);
                         this.runFc(fc_success, { data: success });
                     } else {
+                        console.log('----------------------------------------------------');
+                        console.log('_all calling getAllFromServer in ---> if (Core.injectedServices.rsJsonapiConfig.cachestore_support)');
+                        console.log('path', path);
+                        console.log('params', params);
+                        console.log('----------------------------------------------------');
                         this.getAllFromServer(path, params, fc_success, fc_error, tempororay_collection, cached_collection, subject);
                     }
                 })
@@ -403,6 +485,11 @@ export class Service<R extends Resource = Resource> extends ParentResourceServic
                 });
         } else {
             // STORE
+            console.log('----------------------------------------------------');
+            console.log('_all calling getAllFromServer');
+            console.log('path', path);
+            console.log('params', params);
+            console.log('----------------------------------------------------');
             tempororay_collection.$is_loading = true;
             this.getAllFromServer(path, params, fc_success, fc_error, tempororay_collection, cached_collection, subject);
         }

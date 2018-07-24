@@ -47,6 +47,9 @@ export class ResourceRelationshipsConverter {
 
             if (this.schema.relationships[relation_key] && this.schema.relationships[relation_key].hasMany) {
                 // hasMany
+                console.log('----------------------------------------------------');
+                console.log('buildRelationships calling __buildRelationshipHasMany with key', relation_key);
+                console.log('----------------------------------------------------');
                 this.__buildRelationshipHasMany(relation_from_value, relation_key);
             } else {
                 // hasOne
@@ -64,6 +67,11 @@ export class ResourceRelationshipsConverter {
         relation_type = relation_type || relation_key /* || schema.relationship.type */;
 
         if (this.getService(relation_type)) {
+            console.log('----------------------------------------------------');
+            console.log('__buildRelationshipHasMany relation_type', relation_type);
+            console.log('__buildRelationshipHasMany this.getService(relation_type)', this.getService(relation_type));
+            console.log('__buildRelationshipHasMany calling __buildRelationshipCollection');
+            console.log('----------------------------------------------------');
             this.__buildRelationshipCollection(relation_from_value, relation_key);
         } else {
             this.__buildRelationshipDataCollection(relation_from_value, relation_key);
@@ -97,6 +105,8 @@ export class ResourceRelationshipsConverter {
             return;
         }
 
+        console.log('----------------------------------------------------');
+        console.log('__buildRelationshipCollection this.included_resources =====>', this.included_resources);
         let tmp_relationship_data = Base.newCollection();
         this.relationships_dest[relation_key].content = 'collection';
         Base.forEach(relation_from_value.data, (relation_value: IDataResource) => {
@@ -133,6 +143,9 @@ export class ResourceRelationshipsConverter {
         });
 
         this.relationships_dest[relation_key].data = tmp_relationship_data;
+        console.log('__buildRelationshipCollection this.relationships_dest[relation_key].data ===========>',
+            this.relationships_dest[relation_key].data);
+        console.log('----------------------------------------------------');
     }
 
     private __buildRelationshipHasOne(

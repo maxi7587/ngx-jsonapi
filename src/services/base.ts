@@ -48,6 +48,10 @@ export class Base {
     }
 
     public static isObjectLive(ttl: number, last_update: number) {
+        console.log('----------------------------------------------------');
+        console.log('isObjectLive?', ttl, last_update);
+        console.log('----------------------------------------------------');
+
         return ttl >= 0 && Date.now() <= last_update + ttl * 1000;
     }
 

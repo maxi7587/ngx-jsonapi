@@ -59,6 +59,12 @@ export class Converter {
         if (Array.isArray(document_from.data)) {
             Converter._buildCollection(<IDataCollection>document_from, <ICollection>resource_dest, included_resources);
         } else {
+            console.log('----------------------------------------------------');
+            console.log('Converter build calling _buildResource');
+            console.log('document_from --->', document_from);
+            console.log('resource_dest --->', resource_dest);
+            console.log('included resources --->', included_resources);
+            console.log('----------------------------------------------------');
             Converter._buildResource(document_from.data, <Resource>resource_dest, included_resources);
         }
     }
@@ -113,6 +119,12 @@ export class Converter {
                     dataresource.id
                 );
             }
+            console.log('----------------------------------------------------');
+            console.log('Converter build_collection calling _buildResource');
+            console.log('dataresource --->', dataresource);
+            console.log('collection_dest[dataresource.id] --->', collection_dest[dataresource.id]);
+            console.log('included resources --->', included_resources);
+            console.log('----------------------------------------------------');
             Converter._buildResource(dataresource, collection_dest[dataresource.id], included_resources);
             new_ids[dataresource.id] = dataresource.id;
         }
@@ -139,6 +151,11 @@ export class Converter {
         }
 
         Converter.getService(resource_data_from.type).parseFromServer(resource_dest.attributes);
+
+        console.log('----------------------------------------------------');
+        console.log('Converter._buildResource calling new ResourceRelationshipsConverter().buildRelationships');
+        console.log('included resources arg value ===> ', included_resources);
+        console.log('----------------------------------------------------');
 
         new ResourceRelationshipsConverter(
             Converter.getService,

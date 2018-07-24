@@ -76,6 +76,7 @@ export class Resource extends ParentResourceService {
                     if (included_ids.indexOf(temporal_id) === -1 && params.include.indexOf(relation_alias) !== -1) {
                         included_ids.push(temporal_id);
                         included.push(resource.toObject({}).data);
+                        console.log('==== resource.toObject.included ====>', included);
                     }
                 });
             } else {
@@ -153,6 +154,7 @@ export class Resource extends ParentResourceService {
         }
 
         if (type_alias in this.getService().schema.relationships && this.getService().schema.relationships[type_alias].hasMany) {
+            console.log('==== resource.addRelationship.resource ====>', resource);
             this.relationships[type_alias].data[object_key] = resource;
         } else {
             this.relationships[type_alias].data = resource;

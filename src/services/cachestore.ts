@@ -9,6 +9,7 @@ import { Converter } from './converter';
 
 export class CacheStore implements ICache {
     public async getResource(resource: Resource /* | IDataResource*/, include: Array<string> = []): Promise<object> {
+        // console.log('getResource in CacheStore class', resource);
         let mypromise: Promise<object> = new Promise(
             (resolve, reject): void => {
                 Core.injectedServices.JsonapiStoreService.getObjet(resource.type + '.' + resource.id)
@@ -44,9 +45,17 @@ export class CacheStore implements ICache {
                         if (promises.length === 0) {
                             resolve(success);
                         } else {
+                            console.log('--------------------------------------------');
+                            console.log('cachestore getResource calling Promise.all', promises);
+                            console.log('--------------------------------------------');
                             // esperamos las promesas de los include antes de dar el resolve
                             Promise.all(promises)
                                 .then(success3 => {
+                                    console.log('--------------------------------------------');
+                                    console.log('then.success');
+                                    console.log('promises --->', promises);
+                                    console.log('success3 --->', success3);
+                                    console.log('--------------------------------------------');
                                     resolve(success3);
                                 })
                                 .catch(error3 => {
@@ -132,6 +141,11 @@ export class CacheStore implements ICache {
         resolve: (value: ICollection) => void,
         reject: () => void
     ) {
+        console.log('LAST===============================');
+        console.log('getCollectionFromStore URL --->', url);
+        console.log('getCollectionFromStore INCLUDE --->', include);
+        console.log('getCollectionFromStore COLEECTION --->', collection);
+        console.log('LAST===============================');
         let promise = Core.injectedServices.JsonapiStoreService.getObjet('collection.' + url);
         promise
             .then((success: IDataCollection) => {
@@ -206,9 +220,17 @@ export class CacheStore implements ICache {
                     promises.push(this.getResource(temporalcollection[dataresource.id], include));
                 }
 
+                console.log('--------------------------------------------');
+                console.log('cachestore fillCollectionWithArrrayAndResourcesOnStore calling Promise.all', promises);
+                console.log('--------------------------------------------');
                 // build collection and resources from store
                 Promise.all(promises)
                     .then(success2 => {
+                        console.log('--------------------------------------------');
+                        console.log('then.success');
+                        console.log('promises --->', promises);
+                        console.log('success2 --->', success2);
+                        console.log('--------------------------------------------');
                         if (datacollection.page) {
                             collection.page = datacollection.page;
                         }
