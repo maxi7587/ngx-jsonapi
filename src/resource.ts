@@ -162,6 +162,9 @@ export class Resource implements ICacheable {
             Converter.getService(this.type).parseFromServer(this.attributes);
         }
 
+        console.log(data_object.data.type, 'will fill resource with data object with rels',
+            Object.keys(data_object.data.relationships || {}));
+
         new ResourceRelationshipsConverter(
             Converter.getService,
             data_object.data.relationships || {},

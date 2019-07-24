@@ -50,7 +50,11 @@ export class Service<R extends Resource = Resource> {
         resource.type = this.type;
         // issue #36: just if service is not registered yet.
         this.getService();
+        console.log(resource.type, 'service resource ---->', this.resource);
+        console.log(resource.type, 'resource before RESET', Object.keys(resource.relationships));
+        console.log(resource.type, 'resource before RESET', resource.toObject());
         resource.reset();
+        console.log(resource.type, 'resource after RESET', resource.toObject());
 
         return resource;
     }
@@ -73,6 +77,7 @@ export class Service<R extends Resource = Resource> {
 
         // CACHEMEMORY
         let resource = this.getOrCreateResource(id);
+        console.log(resource.type, 'resource after getOrCreateResource has rels --->', Object.keys(resource.relationships || {}));
         resource.is_loading = true;
 
         let subject = new BehaviorSubject<R>(resource);
@@ -90,6 +95,7 @@ export class Service<R extends Resource = Resource> {
                         throw new Error('No está viva la caché de localstorage');
                     }
                     resource.is_loading = false;
+                    console.log(resource.type, 'resource after getResource has rels --->', Object.keys(resource.relationships || {}));
                     subject.next(resource);
                     subject.complete();
                 })
@@ -97,6 +103,7 @@ export class Service<R extends Resource = Resource> {
                     this.getGetFromServer(path, resource, subject);
                 });
         } else {
+            console.log('wil get resource from server');
             this.getGetFromServer(path, resource, subject);
         }
         subject.next(resource);
@@ -135,11 +142,16 @@ export class Service<R extends Resource = Resource> {
     public getOrCreateResource(id: string): R {
         let service = Converter.getService(this.type);
         if (service.cachememory && id in service.cachememory.resources) {
+            console.log(service.type, 'will getOrCreateResource fro cachememory! rels...',
+                Object.keys(service.cachememory.resources[id].relationships || {}));
+
             return <R>service.cachememory.resources[id];
         } else {
             let resource = service.new();
             resource.id = id;
+            console.log(resource.type, 'new resource relationships', Object.keys(resource.relationships));
             service.cachememory.setResource(resource, false);
+            console.log(resource.type, 'created NEW RESOURCE and stored in cache');
 
             return <R>resource;
         }

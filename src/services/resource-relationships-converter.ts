@@ -75,6 +75,7 @@ export class ResourceRelationshipsConverter {
 
     private __buildRelationshipHasOne(relation_data_from: IDataObject, relation_alias: string): void {
         // new related resource <> cached related resource <> ? delete!
+        // console.log(relation_alias, 'will TRY to build hasOne relationship with this data', relation_data_from.data, this.included_resources);
         if (!('type' in relation_data_from.data)) {
             this.relationships_dest[relation_alias].data = [];
 
@@ -86,7 +87,9 @@ export class ResourceRelationshipsConverter {
         }
 
         if ((<Resource>this.relationships_dest[relation_alias].data).id !== relation_data_from.data.id) {
+            // console.log(relation_alias, 'will build hasOne relationship with this data', relation_data_from.data, this.included_resources);
             let resource_data = this.__buildRelationship(relation_data_from.data, this.included_resources);
+            // console.log(relation_alias, 'BUILT hasOne relationship with this data', resource_data);
             if (resource_data) {
                 this.relationships_dest[relation_alias].data = resource_data;
                 this.relationships_dest[relation_alias].builded = true;
@@ -100,6 +103,7 @@ export class ResourceRelationshipsConverter {
             let data = included_array[resource_data_from.type][resource_data_from.id];
 
             // Store the include in cache
+            console.log('will STORE the resource in the cache with rels...', Object.keys(data.relationships || {}));
             this.getService(resource_data_from.type).cachestore.setResource(data);
 
             return data;
@@ -107,6 +111,9 @@ export class ResourceRelationshipsConverter {
             // OPTIONAL: return cached Resource
             let service = this.getService(resource_data_from.type);
             if (service && resource_data_from.id in service.cachememory.resources) {
+                console.log(resource_data_from.type, 'build relationship will return a rel with this rels --->',
+                    Object.keys(service.cachememory.resources[resource_data_from.id].relationships || {}));
+
                 return service.cachememory.resources[resource_data_from.id];
             }
         }

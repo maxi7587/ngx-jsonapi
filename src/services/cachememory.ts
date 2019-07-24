@@ -62,7 +62,9 @@ export class CacheMemory<R extends Resource = Resource> {
         if (resource.id in this.resources) {
             this.addResourceOrFill(resource);
         } else {
+            console.log(resource.type, 'will save resource in cachememory with this rels', Object.keys(resource.relationships));
             this.resources[resource.id] = resource;
+            console.log(resource.type, 'saves resource in cachememory with this rels', Object.keys(this.resources[resource.id].relationships));
         }
         this.resources[resource.id].lastupdate = update_lastupdate ? Date.now() : 0;
     }

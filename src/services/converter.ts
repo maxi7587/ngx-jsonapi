@@ -65,20 +65,28 @@ export class Converter<R extends Resource> {
 
     /* return a resource type(resoruce_service) with data(data) */
     private static procreate(data: IDataResource): Resource {
+        console.log('data in procreate --------------------------------->', data);
         if (!('type' in data && 'id' in data)) {
             console.error('Jsonapi Resource is not correct', data);
         }
 
         let resource: Resource;
         if (data.id in Converter.getService(data.type).cachememory.resources) {
+            console.log(data.type, 'resource exists in cachememory ----->', data.id);
+            console.log(data.type, 'resource exists in cachememory it this rels ----->',
+                Object.keys(Converter.getService(data.type).cachememory.resources[data.id].relationships || {}));
             resource = Converter.getService(data.type).cachememory.resources[data.id];
         } else {
+            console.log(data.type, 'resource DOES NOT exist in cachememory ----->', data.id);
             resource = Converter.getService(data.type).getOrCreateResource(data.id);
+            console.log(data.type, 'resource DOES NOT exist in cachememory it this rels ----->',
+                Object.keys(Converter.getService(data.type).cachememory.resources[data.id].relationships || {}));
         }
 
         resource.attributes = data.attributes || {};
         resource.relationships = <{ [key: string]: any }>data.relationships;
         resource.is_new = false;
+        console.log(resource.type, '- resource after PROCREATE ------------->', resource.toObject());
 
         return resource;
     }
@@ -89,6 +97,7 @@ export class Converter<R extends Resource> {
     private static json_array2resources_array(json_array: Array<IDataResource>, destination_array: IObjectsById<Resource> = {}): void {
         for (let data of json_array) {
             let resource = Converter.json2resource(data, false);
+            console.log(resource.type, '- resource after json2rsource ------------->', resource.toObject());
             destination_array[resource.type + '_' + resource.id] = resource;
         }
     }

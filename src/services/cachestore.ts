@@ -238,6 +238,7 @@ export class CacheStore {
     }
 
     private fillRelationshipFromStore(resource: Resource, resource_alias: string, include_promises: Array<any>) {
+        console.log('resource ...............', resource);
         if (resource_alias.includes('.')) {
             let included_resource_alias_parts = resource_alias.split('.');
             let datadocument = resource.relationships[included_resource_alias_parts[0]].data;
