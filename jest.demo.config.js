@@ -15,7 +15,6 @@ module.exports = {
   globals: {
       'ts-jest': {
           tsConfigFile: 'demo/tsconfig.spec.json'
-      },
-      __TRANSFORM_HTML__: true
+      }
   },
 };

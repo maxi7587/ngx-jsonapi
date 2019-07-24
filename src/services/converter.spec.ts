@@ -1,9 +1,9 @@
 import { Converter } from './converter';
 import { Core } from '../core';
 import { IDataResource } from '../interfaces/data-resource';
-import { IResourcesByType } from 'ngx-jsonapi';
+import { IResourcesByType } from '../interfaces';
 
-import { JsonapiConfig } from 'src/jsonapi-config';
+import { JsonapiConfig } from '../jsonapi-config';
 import { StoreService as JsonapiStore } from '../sources/store.service';
 import { Http as JsonapiHttpImported } from '../sources/http.service';
 import { HttpClient, HttpHandler, HttpRequest, HttpEvent, HttpResponse } from '@angular/common/http';

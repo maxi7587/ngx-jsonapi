@@ -18,7 +18,7 @@ class HttpHandlerMock implements HttpHandler {
 describe('core methods', () => {
     let core: Core;
     it('should crete core service instance', () => {
-        spyOn(JsonapiStore.prototype, 'constructor');
+        spyOn(JsonapiStore.prototype as any, 'constructor');
         core = new Core(
             new JsonapiConfig(),
             new JsonapiStore(),
