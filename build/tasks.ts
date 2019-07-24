@@ -46,7 +46,7 @@ async function _compilePackagesWithNgc(pkg: string) {
 
     await Promise.all([
         util.writeFile(`./dist/${pkg}.d.ts`, entryTypeDefinition),
-        util.writeFile(`./dist/${pkg}.metadata.json`, entryMetadata),
+        util.writeFile(`./dist/${pkg}.metadata.json`, entryMetadata)
     ]);
 }
 
@@ -68,7 +68,7 @@ export async function bundleFesms(config: Config) {
             `-i ./dist/index.js`,
             `-o ./dist/${topLevelName}/${config.scope}/${pkg}.js`,
             `-f es`,
-            `--sourcemap`,
+            `--sourcemap`
         ]);
 
         await util.mapSources(
@@ -87,7 +87,7 @@ export async function downLevelFesmsToES5(config: Config) {
         '--target es5',
         '--module es2015',
         '--noLib',
-        '--sourceMap',
+        '--sourceMap'
     ];
 
     await mapAsync(packages, async pkg => {

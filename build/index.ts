@@ -3,7 +3,7 @@ import { packages } from './config';
 
 build({
     scope: '@ngx-jsonapi',
-    packages,
+    packages
 }).catch(err => {
     console.error(err);
     process.exit(1);
