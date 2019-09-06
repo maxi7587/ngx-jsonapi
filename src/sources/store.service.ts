@@ -24,6 +24,7 @@ interface IDataCollectionStorage extends IDataCollection {
 export class StoreService /* implements IStoreService */ {
     private globalstore: LocalForage;
     private allstore: LocalForage;
+    private store_by_key: {[key: string]: LocalForage} = {};
 
     public constructor() {
         this.globalstore = localForage.createInstance({
@@ -38,7 +39,7 @@ export class StoreService /* implements IStoreService */ {
     public getDataObject(type: 'collection' | string, id_or_url: string): Observable<IDataCollection | IDataResource> {
         let subject = new Subject<IDataResource | IDataCollection>();
 
-        this.allstore
+        this.getAllStore()
             .getItem<IDataResource | IDataCollection>('jsonapi.' + type + '.' + id_or_url)
             .then(success => {
                 if (success === null) {
@@ -54,39 +55,46 @@ export class StoreService /* implements IStoreService */ {
     }
 
     public async getDataResources(keys: Array<string>): Promise<IObjectsById<IDataResourceStorage>> {
+        console.log('starting map');
+        console.log(keys.map(key => 'jsonapi.' + key));
+        console.log('ended map');
+
+        // let promises  = keys.map(function(item) { return this.getAllStore().getItem(item); });
+        // return Promise.all(promises);
+
         return this.allstore.getItems(keys.map(key => 'jsonapi.' + key));
     }
 
     public saveResource(type: string, url_or_id: string, value: IDataResource): void {
         let data_resource_storage: IDataResourceStorage = { ...{ _lastupdate_time: Date.now() }, ...value };
-        this.allstore.setItem('jsonapi.' + type + '.' + url_or_id, data_resource_storage);
+        this.getAllStore().setItem('jsonapi.' + type + '.' + url_or_id, data_resource_storage);
     }
 
     public saveCollection(url_or_id: string, value: IDataCollection): void {
         let data_collection_storage: IDataCollectionStorage = { ...{ _lastupdate_time: Date.now() }, ...value };
-        this.allstore.setItem('jsonapi.collection.' + url_or_id, data_collection_storage);
+        this.getAllStore().setItem('jsonapi.collection.' + url_or_id, data_collection_storage);
     }
 
     public clearCache() {
-        this.allstore.clear();
+        this.getAllStore().clear();
         this.globalstore.clear();
     }
 
     public deprecateObjectsWithKey(key_start_with: string) {
-        this.allstore.getItems().then(result => {
+        this.getAllStore().getItems().then(result => {
             for (let saved_resource_key in result) {
                 if (saved_resource_key.startsWith(key_start_with)) {
                     // key of stored object starts with key_start_with
                     result[saved_resource_key]._lastupdate_time = 0;
-                    this.allstore.setItem(saved_resource_key, result[saved_resource_key]);
+                    this.getAllStore().setItem(saved_resource_key, result[saved_resource_key]);
                 }
             }
         });
     }
 
     public async removeObjectsWithKey(key: string) {
-        this.allstore.removeItem(key);
-        await this.allstore.getItems().then(async result => {
+        this.getAllStore().removeItem(key);
+        await this.getAllStore().getItems().then(async result => {
             for (let saved_resource_key in result) {
                 let resource_id_split = key.split('.');
                 let resource_id = resource_id_split[resource_id_split.length - 1];
@@ -98,7 +106,7 @@ export class StoreService /* implements IStoreService */ {
                         result[saved_resource_key].data.findIndex(resource => resource.id === resource_id),
                         1
                     );
-                    await this.allstore.setItem(saved_resource_key, result[saved_resource_key]);
+                    await this.getAllStore().setItem(saved_resource_key, result[saved_resource_key]);
                 }
             }
         });
@@ -125,21 +133,32 @@ export class StoreService /* implements IStoreService */ {
     }
 
     private checkAndDeleteOldElements() {
-        this.allstore
+        this.getAllStore()
             .keys()
             .then(success => {
                 Base.forEach(success, key => {
                     // recorremos cada item y vemos si es tiempo de removerlo
-                    this.allstore
+                    this.getAllStore()
                         .getItem(key)
                         .then((success2: IDataCollectionStorage | IDataResourceStorage) => {
                             if (Date.now() >= success2._lastupdate_time + 24 * 3600 * 1000) {
-                                this.allstore.removeItem(key);
+                                this.getAllStore().removeItem(key);
                             }
                         })
                         .catch(noop);
                 });
             })
             .catch(noop);
+    }
+
+    private getAllStore(key?: string): LocalForage {
+        if (!key) {
+            return this.allstore;
+        }
+        if (this.store_by_key[key]) {
+            this.store_by_key[key] = localForage.createInstance({ name: key });
+        }
+
+        return this.store_by_key[key];
     }
 }

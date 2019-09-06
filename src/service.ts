@@ -139,6 +139,7 @@ export class Service<R extends Resource = Resource> {
 
     public getOrCreateCollection(path: PathCollectionBuilder): DocumentCollection<R> {
         let collection = <DocumentCollection<R>>this.getService().cachememory.getOrCreateCollection(path.getForCache());
+        console.log('collections ---->', (this.getService().cachememory as any).collections);
 
         return collection;
     }
@@ -220,7 +221,8 @@ export class Service<R extends Resource = Resource> {
         let subject = new BehaviorSubject<DocumentCollection<R>>(temporary_collection);
 
         // if ttl is not defined inthe colleciton, use the service ttl
-        temporary_collection.ttl = temporary_collection.ttl || this.getService().collections_ttl;
+        // temporary_collection.ttl = temporary_collection.ttl || this.getService().collections_ttl;
+        temporary_collection.ttl = temporary_collection.ttl || 0;
 
         // when fields is set, get resource form server
         if (
@@ -228,9 +230,13 @@ export class Service<R extends Resource = Resource> {
             isLive(temporary_collection, params.ttl) &&
             Object.keys(params.fields).length === 0
         ) {
+            if (this.type === 'prodcuts') {
+                console.log('will return form memory');
+            }
             temporary_collection.source = 'memory';
             subject.next(temporary_collection);
             setTimeout(() => subject.complete(), 0);
+            // subject.complete();
         } else if (Core.injectedServices.rsJsonapiConfig.cachestore_support) {
             // STORE
             temporary_collection.is_loading = true;

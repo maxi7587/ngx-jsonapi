@@ -133,10 +133,14 @@ export class CacheStore {
                     collection.is_loading = false;
                     collection.cache_last_update = data_collection._lastupdate_time;
                     subject.next(collection);
-                    setTimeout(() => subject.complete());
+                    console.log('will complete subject with collection', collection);
+                    // setTimeout(() => subject.complete());
+                    subject.complete();
 
                     return;
                 }
+
+                console.log('FAILED fillCollectionWithArrrayAndResourcesOnMemory');
 
                 let promise2 = this.fillCollectionWithArrrayAndResourcesOnStore(data_collection, include, collection);
                 promise2
@@ -150,8 +154,9 @@ export class CacheStore {
                         collection.cache_last_update = data_collection._lastupdate_time;
                         collection.builded = true;
                         collection.is_loading = false;
+                        console.log('will complete subject after fillCollectionWithArrrayAndResourcesOnStore');
                         subject.next(collection);
-                        setTimeout(() => subject.complete());
+                        subject.complete();
                     })
                     .catch(err => subject.error(err));
             },
@@ -164,18 +169,25 @@ export class CacheStore {
     private fillCollectionWithArrrayAndResourcesOnMemory(dataresources: Array<IDataResource>, collection: DocumentCollection): boolean {
         let all_ok = true;
         for (let dataresource of dataresources) {
+            console.log('fillCollectionWithArrrayAndResourcesOnMemory will call getResourceFromMemory');
             let resource = this.getResourceFromMemory(dataresource);
+            console.log('called getResourceFromMemory');
             if (resource.is_new) {
                 all_ok = false;
                 break;
             }
+            console.log('fillCollectionWithArrrayAndResourcesOnMemory will call replaceOrAdd');
             collection.replaceOrAdd(resource);
+            console.log('called replaceOrAdd');
         }
 
         return all_ok;
     }
 
     private getResourceFromMemory(dataresource: IDataResource): Resource {
+        if (!Converter.getService(dataresource.type)) {
+            console.log('cannot get cachememory for service ', dataresource.type);
+        }
         let cachememory = Converter.getService(dataresource.type).cachememory;
         let resource = cachememory.getOrCreateResource(dataresource.type, dataresource.id);
 
@@ -187,30 +199,40 @@ export class CacheStore {
         include: Array<string>,
         collection: DocumentCollection
     ): Promise<void> {
+        console.log('1. fillCollectionWithArrrayAndResourcesOnStore');
         let promise = new Promise(
             (resolve: (value: void) => void, reject: (value: any) => void): void => {
+                console.log('2. fillCollectionWithArrrayAndResourcesOnStore');
                 let resources_by_id: IObjectsById<Resource> = {};
 
                 // get collection from store
                 let required_store_keys: Array<string> = datacollection.data.map(dataresource => {
+                    if (!Converter.getService(dataresource.type)) {
+                        console.log('2. cannot get cachememory for service ', dataresource.type);
+                    }
                     let cachememory = Converter.getService(dataresource.type).cachememory;
                     resources_by_id[dataresource.id] = cachememory.getOrCreateResource(dataresource.type, dataresource.id);
+                    console.log('3. fillCollectionWithArrrayAndResourcesOnStore');
 
                     return resources_by_id[dataresource.id].type + '.' + dataresource.id;
                 });
+                console.log('4. fillCollectionWithArrrayAndResourcesOnStore');
 
                 // get resources for collection fill
                 Core.injectedServices.JsonapiStoreService.getDataResources(required_store_keys)
                     .then(store_data_resources => {
+                        console.log('5. fillCollectionWithArrrayAndResourcesOnStore');
                         let include_promises: Array<Promise<object>> = [];
                         for (let key in store_data_resources) {
                             let data_resource = store_data_resources[key];
                             resources_by_id[data_resource.id].fill({ data: data_resource });
+                            console.log('5. fillCollectionWithArrrayAndResourcesOnStore', key);
 
                             // include some times is a collection :S
                             Base.forEach(include, resource_alias => {
                                 this.fillRelationshipFromStore(resources_by_id[data_resource.id], resource_alias, include_promises);
                             });
+                            console.log('6. fillCollectionWithArrrayAndResourcesOnStore');
 
                             resources_by_id[data_resource.id].lastupdate = data_resource._lastupdate_time;
                         }
@@ -228,10 +250,12 @@ export class CacheStore {
                                 }
                                 collection.data.push(resource);
                             }
+                            console.log('7. fillCollectionWithArrrayAndResourcesOnStore');
 
                             resolve(null);
                         } else {
                             // esperamos las promesas de los include antes de dar el resolve
+                            console.log('8. fillCollectionWithArrrayAndResourcesOnStore');
                             Promise.all(include_promises)
                                 .then(success3 => {
                                     if (datacollection.page) {
@@ -242,15 +266,18 @@ export class CacheStore {
                                         let resource: Resource = resources_by_id[dataresource.id];
                                         collection.data.push(resource);
                                     }
+                                    console.log('9. fillCollectionWithArrrayAndResourcesOnStore');
 
                                     resolve(null);
                                 })
                                 .catch(error3 => {
+                                    console.log('10. fillCollectionWithArrrayAndResourcesOnStore');
                                     reject(error3);
                                 });
                         }
                     })
                     .catch(err => {
+                        console.log('11. fillCollectionWithArrrayAndResourcesOnStore');
                         reject(err);
                     });
             }
@@ -283,11 +310,16 @@ export class CacheStore {
             // hasOne
             let related_resource = <IDataResource>resource.relationships[resource_alias].data;
             if (
-                !('attributes' in related_resource)
-                || (Object.keys(related_resource.attributes).length === 0 && related_resource.attributes.constructor === Object)
+                related_resource !== null &&
+                (!('attributes' in related_resource)
+                || (Object.keys(related_resource.attributes).length === 0 && related_resource.attributes.constructor === Object))
             ) {
                 // no está cargado aún
+                console.log('fillRelationshipFromStore wil call getResourceFromMemory from resource', resource);
                 let builded_resource = this.getResourceFromMemory(related_resource);
+                if (!builded_resource.type) {
+                    console.log('will fail with this resource relationships --->', resource);
+                }
                 if (builded_resource.is_new) {
                     // no está en memoria, la pedimos a store
                     include_promises.push(this.getResource(builded_resource));
