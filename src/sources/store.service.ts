@@ -62,7 +62,7 @@ export class StoreService /* implements IStoreService */ {
         // let promises  = keys.map(function(item) { return this.getAllStore().getItem(item); });
         // return Promise.all(promises);
 
-        return this.allstore.getItems(keys.map(key => 'jsonapi.' + key));
+        return this.getAllStore().getItems(keys.map(key => 'jsonapi.' + key));
     }
 
     public saveResource(type: string, url_or_id: string, value: IDataResource): void {
