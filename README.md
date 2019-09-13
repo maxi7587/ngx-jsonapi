@@ -19,12 +19,12 @@ You can test library on this online example 👌 <http://ngx-jsonapi.reyesoft.co
 
 </div>
 
-Data is obtained from [Json Api Playground](http://jsonapiplayground.reyesoft.com/) server.
+Data is obtained from [Json Api Playground](https://jsonapiplayground.reyesoft.com/) server.
 
 ## Supported features
 
 -   Cache (on memory): TTL for collections and resources. Before a HTTP request objects are setted with cached data.
--   Cache on localstorage
+-   Cache on IndexedDB
 -   Pagination
 -   Sorting
 -   [Include param support](http://jsonapi.org/format/#fetching-includes) (also, when you save)
@@ -132,9 +132,9 @@ export class AuthorsComponent {
 
 ```html
 <p *ngFor="let author of authors.data; trackBy: authors.trackBy">
-  id: {{ author.id }} <br />
-  name: {{ author.attributes.name }} <br />
-  birth date: {{ author.attributes.date_of_birth | date }}
+    id: {{ author.id }} <br />
+    name: {{ author.attributes.name }} <br />
+    birth date: {{ author.attributes.date_of_birth | date }}
 </p>
 ```
 
@@ -251,7 +251,7 @@ yarn
 yarn start
 ```
 
-We use as backend [Json Api Playground](http://jsonapiplayground.reyesoft.com/).
+We use as backend [Json Api Playground](https://jsonapiplayground.reyesoft.com/).
 
 ## Colaborate
 
