@@ -300,7 +300,7 @@ export class CacheStore {
         return promise;
     }
 
-    private async fillRelationshipFromStore(resource: Resource, resource_alias: string, include_promises: Array<any>) {
+    private fillRelationshipFromStore(resource: Resource, resource_alias: string, include_promises: Array<any>) {
         if (resource_alias.includes('.')) {
             let included_resource_alias_parts = resource_alias.split('.');
             let datadocument = resource.relationships[included_resource_alias_parts[0]].data;
